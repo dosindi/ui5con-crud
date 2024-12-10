@@ -5,12 +5,6 @@ import TransactionTable from "./TransactionTable";
 import BalanceBox from "./BalanceBox";
 import { useI18nBundle } from "@ui5/webcomponents-react-base";
 
-import Amplify, { API, graphqlOperation } from "aws-amplify";
-import { listTransactions } from "../graphql/queries";
-import awsExports from "../aws-exports";
-
-Amplify.configure(awsExports);
-
 const initialState = {
   date: new Date().toISOString().split("T")[0],
   payee: "",
@@ -21,6 +15,40 @@ const initialState = {
   comment: "",
 };
 
+// Mock transactions for demonstration
+const mockTransactions = [
+  {
+    id: "1",
+    date: "2024-12-01",
+    payee: "Grocery Store",
+    category: "Food",
+    paymentMethod: "Credit Card",
+    cashFlow: "debit",
+    amount: 50.25,
+    comment: "Weekly groceries",
+  },
+  {
+    id: "2",
+    date: "2024-12-03",
+    payee: "Electric Company",
+    category: "Utilities",
+    paymentMethod: "Bank Transfer",
+    cashFlow: "debit",
+    amount: 120.75,
+    comment: "Monthly electric bill",
+  },
+  {
+    id: "3",
+    date: "2024-12-05",
+    payee: "Salary",
+    category: "Income",
+    paymentMethod: "Bank Transfer",
+    cashFlow: "credit",
+    amount: 2000.0,
+    comment: "Monthly salary",
+  },
+];
+
 export default function Transactions() {
   const [formState, setFormState] = useState(initialState);
   const [transactionDialogState, setTransactionDialogState] = useState(false);
@@ -29,26 +57,9 @@ export default function Transactions() {
   const i18nBundle = useI18nBundle("myApp");
 
   useEffect(() => {
-    fetchTransactions();
+    // Replace API call with mock data initialization
+    setTransactions(mockTransactions);
   }, []);
-
-  async function fetchTransactions() {
-    try {
-      const transactionData = await API.graphql(
-        graphqlOperation(listTransactions)
-      );
-
-      let transactionsResult = transactionData.data.listTransactions.items;
-      transactionsResult.sort(
-        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-      );
-      transactionsResult.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-      setTransactions(transactionsResult);
-    } catch (err) {
-      console.log("error fetching Transactions");
-    }
-  }
 
   const onNewTransactionClick = () => {
     setFormState(initialState);
@@ -69,7 +80,6 @@ export default function Transactions() {
             }
             endContent={
               <Button onClick={onNewTransactionClick}>
-                {" "}
                 {i18nBundle.getText("newTransactionButton")}
               </Button>
             }

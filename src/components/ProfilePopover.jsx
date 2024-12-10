@@ -7,7 +7,6 @@ import {
 } from "@ui5/webcomponents-react";
 import { useI18nBundle } from "@ui5/webcomponents-react-base";
 
-import { Auth } from "aws-amplify";
 import { useEffect } from "react";
 
 function ProfilePopover({ popoverProfileState, setPopoverProfileState }) {
@@ -21,8 +20,7 @@ function ProfilePopover({ popoverProfileState, setPopoverProfileState }) {
 
   async function checkUser() {
     try {
-      const loggedInUser = await Auth.currentAuthenticatedUser();
-      setUsername(loggedInUser.username);
+      setUsername("JohnDoe");
     } catch (err) {
       setUsername(null);
       console.log(err.message);
@@ -42,7 +40,7 @@ function ProfilePopover({ popoverProfileState, setPopoverProfileState }) {
         console.log("Help");
         break;
       case "logout":
-        Auth.signOut();
+        console.log("logout ...");
         break;
       default:
         console.log("Option not configured: " + itemClicked);

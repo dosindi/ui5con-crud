@@ -16,12 +16,6 @@ import {
 import { useI18nBundle } from "@ui5/webcomponents-react-base";
 import "@ui5/webcomponents/dist/features/InputElementsFormSupport.js";
 
-import Amplify, { API, graphqlOperation } from "aws-amplify";
-import { updateTransaction, createTransaction } from "../graphql/mutations";
-import awsExports from "../aws-exports";
-
-Amplify.configure(awsExports);
-
 function TransactionDialog({
   formState,
   setFormState,
@@ -41,7 +35,7 @@ function TransactionDialog({
     if (key === "amount" && value !== null && value.trim() !== "") {
       value = parseFloat(value);
     }
-    await setFormState({ ...formState, [key]: value });
+    setFormState({ ...formState, [key]: value });
   }
 
   const onSaveClick = () => {
@@ -60,34 +54,25 @@ function TransactionDialog({
     }
   };
 
-  async function addTransaction() {
-    try {
-      const transaction = { ...formState };
+  function addTransaction() {
+    const transaction = { ...formState };
 
-      if (formState.id) {
-        // update
-        delete transaction.createdAt;
-        delete transaction.updatedAt;
-        await API.graphql(
-          graphqlOperation(updateTransaction, { input: transaction })
-        );
-
-        const transactionIndex = transactions.findIndex(
-          (e) => e.id === formState.id
-        );
-        let newTransactions = [...transactions];
-        newTransactions[transactionIndex] = formState;
-        setTransactions(newTransactions);
-      } else {
-        // create
-        const apiCall = await API.graphql(
-          graphqlOperation(createTransaction, { input: transaction })
-        );
-
-        setTransactions([...transactions, apiCall.data.createTransaction]);
-      }
-    } catch (err) {
-      console.log("error creating Transaction:", err);
+    if (formState.id) {
+      // Update
+      const transactionIndex = transactions.findIndex(
+        (e) => e.id === formState.id
+      );
+      const newTransactions = [...transactions];
+      newTransactions[transactionIndex] = { ...transaction };
+      setTransactions(newTransactions);
+    } else {
+      // Create
+      const newTransaction = {
+        ...transaction,
+        id: transactions.length + 1, // Simulating unique ID
+        createdAt: new Date().toISOString(),
+      };
+      setTransactions([...transactions, newTransaction]);
     }
   }
 
@@ -143,8 +128,7 @@ function TransactionDialog({
           <RadioButton
             name="GroupA"
             text={i18nBundle.getText("transactionDebit")}
-            checked={formState.cashFlow === "debit" ? true : false}
-            valueState="Error"
+            checked={formState.cashFlow === "debit"}
             value="debit"
             onChange={(event) =>
               handleInputChanges("cashFlow", event.target.value)
@@ -153,8 +137,7 @@ function TransactionDialog({
           <RadioButton
             name="GroupA"
             text={i18nBundle.getText("transactionCredit")}
-            checked={formState.cashFlow === "credit" ? true : false}
-            valueState="Success"
+            checked={formState.cashFlow === "credit"}
             value="credit"
             onChange={(event) =>
               handleInputChanges("cashFlow", event.target.value)

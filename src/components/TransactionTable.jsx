@@ -7,12 +7,6 @@ import {
 } from "@ui5/webcomponents-react";
 import { useI18nBundle } from "@ui5/webcomponents-react-base";
 
-import Amplify, { API } from "aws-amplify";
-import { deleteTransaction } from "../graphql/mutations";
-import awsExports from "../aws-exports";
-
-Amplify.configure(awsExports);
-
 function TransactionTable({
   transactionsData,
   setTransactions,
@@ -26,22 +20,14 @@ function TransactionTable({
     setTransactionDialogState(true);
   };
 
-  async function onDeleteTransaction(rowIndex) {
-    try {
-      const transactionId = transactionsData[rowIndex].id;
+  function onDeleteTransaction(rowIndex) {
+    const transactionId = transactionsData[rowIndex].id;
 
-      await API.graphql({
-        query: deleteTransaction,
-        variables: {
-          input: { id: transactionId, date: transactionsData[rowIndex].date },
-        },
-      });
-      setTransactions(
-        transactionsData.filter((item) => item.id !== transactionId)
-      );
-    } catch (err) {
-      console.log("error deleting Transaction:", err);
-    }
+    // Simulate deletion by filtering out the transaction locally
+    const updatedTransactions = transactionsData.filter(
+      (item) => item.id !== transactionId
+    );
+    setTransactions(updatedTransactions);
   }
 
   const columns = [
@@ -86,7 +72,11 @@ function TransactionTable({
           maximumFractionDigits: "2",
           minimumFractionDigits: "2",
         };
-        return instance.cell.value.toLocaleString(navigator.language, options);
+        return(
+		   <div style={{ textAlign: "right" }}>
+			   {instance.cell.value.toLocaleString(navigator.language, options)}
+			</div>
+		);
       },
     },
     {
